@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title%}create_user{% endblock title %}
+
+{% block content %}
+<h1>Create User</h1>
+<hr>
+<a href="{% url 'info' %}">Register</a> |
+<a href="{% url 'status' %}">State</a> |
+<a href="{% url 'home' %}">Home</a>
+<br>
+<br>
+<form method="post" class="my-class" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <br>
+    <button class="btn btn-info ml-2" type="submit">Create</button>
+</form>
+{% endblock content %}
