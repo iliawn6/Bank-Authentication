@@ -1,3 +1,7 @@
 .venv/
+.env
 db.sqlite3
-.images/
+/.cloud/
+.cloud/
+/.cloud
+__pycache__/

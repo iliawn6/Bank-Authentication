@@ -29,25 +29,21 @@ class SubmitInfoView(View):
         if not form.is_valid():
             return JsonResponse({"error": "bad request"}, status="400")
         
-        #form.save()
-        #TODO: done --------
-
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
             ip = request.META.get('REMOTE_ADDR')
-        
-        
+            
         new_user = User(email = form.instance.email, last_name = form.instance.last_name, 
-                        national_id = hash(form.instance.national_id), ip = ip, image1 = form.instance.image1,
-                        image2 = form.instance.image2, username = (form.instance.last_name + str(form.instance.national_id)[0:6]))
+                        national_id = hash(form.instance.national_id), ip = ip,
+                        image1 = (form.instance.last_name + str(form.instance.national_id)[0:6] + ".img1"),
+                        image2 = (form.instance.last_name + str(form.instance.national_id)[0:6] + ".img2"),
+                        username = (form.instance.last_name + str(form.instance.national_id)[0:6]))
         
         new_user.save()
 
         return HttpResponse("Your authentication request has been registered!!")
-    
-
     
 
 class StatusView(View):
@@ -58,19 +54,18 @@ class StatusView(View):
     def post(self, request):
         form = CheckNationalIdForm(request.POST)
         if not form.is_valid():
-            return JsonResponse({"error": "bad request"}, status="400")
-        
+            return JsonResponse({"error": "bad request"}, status="400")   
         try:
             user = User.objects.get(national_id = hash(form.instance.national_id))
         except:
             return HttpResponse("User not found", status="404")
-
         if user.state == "pending":
             return HttpResponse("Pending...")
         elif user.state == "rejected":
             return HttpResponse("Your authentication request has been rejected. Please try again later.")     
         elif user.state == "confirmed":
             return HttpResponse(f"Your authentication was successfull!! Your username is {user.username}.")
+
 
 class HomeView(View):
     def get(self, request):

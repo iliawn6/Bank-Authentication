@@ -4,14 +4,14 @@ from .models import User
 class CreateUserForm(forms.ModelForm):
      
     class Meta:
-            model = User
-            fields = [
-               "email",
-               "last_name",
-               "national_id",
-               "image1",
-               "image2",
-            ]
+        model = User
+        fields = [
+           "email",
+           "last_name",
+           "national_id",
+           "image1",
+           "image2",
+        ]
 
 
 class CheckNationalIdForm(forms.ModelForm):
