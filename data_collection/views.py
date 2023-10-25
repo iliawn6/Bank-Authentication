@@ -8,6 +8,8 @@ from .models import User
 from django.core.files.storage import default_storage
 
 import pika, os
+import requests
+import time
 
 def hello(request):
     return HttpResponse("hello world!")
@@ -54,20 +56,6 @@ class SubmitInfoView(View):
         url = os.environ.get('CLOUDAMQP_URL', "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax")
         params = pika.URLParameters(url)
         connection = pika.BlockingConnection(params)
-
-        # channel = connection.channel() # start a channel
-        # channel.queue_declare(queue='hello') # Declare a queue
-        # channel.basic_publish(exchange='',
-        #                     routing_key='hello',
-        #                     body='Hello CloudAMQP!')
-
-        # print(" [x] Sent 'Hello World!'")
-        # connection.close()
-
-
-        
-        # connection = pika.BlockingConnection(pika.ConnectionParameters(
-        #     host='amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax/'))
         
         channel = connection.channel()
         channel.queue_declare(queue='users')
@@ -84,21 +72,166 @@ class SubmitInfoView(View):
 
 class ReceiverView(View):
     def get(self, request):
+
+        def callback(ch, method, properties, body):
+            print(f" [x] Received {body}")
+
+            def dbChanges(check_bool, username):
+                user = User.objects.get(username = username)
+                if check_bool == True:
+                    user.state = "confirmed."
+                    user.save()
+                else:
+                    user.state = "rejected."
+                    user.save()
+                print("State successfully changed")
+
+            api_key = 'acc_e68549d6c13fa79'
+            api_secret = '6c88ec182a38feee0ba4ede9ebf672ad'
+            image_path1 = str(body)[2:-1] + "_img1.jpg"
+            image_path2 = str(body)[2:-1] + "_img2.jpg"
+            username = str(body)[2:-1]
+
+            response1_bool = False
+            response2_bool = False
+            
+            try:
+                response = requests.post(
+                    'https://api.imagga.com/v2/faces/detections?return_face_id=1',
+                    auth=(api_key, api_secret),
+                    files={'image': default_storage.open(image_path1).read()})
+                face_id_1 = response.json()["result"]["faces"][0]["face_id"]
+                response1_bool = True
+                print(face_id_1)
+            except:
+                #return HttpResponse("error")
+                print("Wrong image1(it's not face image)!!")
+
+            try:
+                response = requests.post(
+                    'https://api.imagga.com/v2/faces/detections?return_face_id=1',
+                    auth=(api_key, api_secret),
+                    files={'image': default_storage.open(image_path2).read()})
+                face_id_2 = response.json()["result"]["faces"][0]["face_id"] 
+                response2_bool = True
+                print(face_id_2)
+            except:
+                print("Wrong image2(it's not face image)!!")
+
+
+            try:
+                if response1_bool and response2_bool:
+                    response = requests.get(
+                        'https://api.imagga.com/v2/faces/similarity?face_id=%s&second_face_id=%s' % (face_id_1, face_id_2),
+                        auth=(api_key, api_secret))
+                    print(response.json())
+
+                    if response.json()["result"]["score"] >= 80:
+                        dbChanges(True, username)
+                    else:
+                        dbChanges(False, username)
+                else:
+                    dbChanges(False, username)
+                    print("Invalid images!!")
+            except:
+                dbChanges(False, username)
+                print("Wrong Input!!")
+           
+        
+
         url = os.environ.get('CLOUDAMQP_URL', "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax")
         params = pika.URLParameters(url)
         connection = pika.BlockingConnection(params)
         channel = connection.channel()
-
-        def callback(ch, method, properties, body):
-            print(f" [x] Received {body}")
-            
+        
         channel.queue_declare(queue='users')
-
         channel.basic_consume(queue='users', on_message_callback=callback, auto_ack=True)
-
         channel.start_consuming()
         channel.close()
-        return HttpResponse("done----")
+        #return HttpResponse("done----")
+
+        #---------------------------------------
+
+            # def dbChanges(check_bool, username):
+            #     user = User.objects.get(username = username)
+            #     if check_bool == True:
+            #         user.state = "confirmed."
+            #         user.save()
+            #     else:
+            #         user.state = "rejected."
+            #         user.save()
+            #     print("State successfully changed")
+
+            # api_key = 'acc_e68549d6c13fa79'
+            # api_secret = '6c88ec182a38feee0ba4ede9ebf672ad'
+            # image_path1 = "Jery818182_img1.jpg"
+            # image_path2 = "Jery818182_img2.jpg"
+            # image_path_test = "Reza787878_img2.jpg"
+            # username = "Jery818182"
+            
+            # response1_bool = False
+            # response2_bool = False
+
+            
+            
+            # # response = requests.post(
+            # #     'https://api.imagga.com/v2/faces/detections?return_face_id=1',
+            # #     auth=(api_key, api_secret),
+            # #     files={'image': default_storage.open(image_path1).read()})
+            # # face_id_1 = response.json()["result"]["faces"][0]["face_id"]
+            # # response1_bool = True
+            # # print(face_id_1)
+            # #print(response.json())
+
+            # try:
+            #     response = requests.post(
+            #         'https://api.imagga.com/v2/faces/detections?return_face_id=1',
+            #         auth=(api_key, api_secret),
+            #         files={'image': default_storage.open(image_path1).read()})
+            #     face_id_1 = response.json()["result"]["faces"][0]["face_id"]
+            #     response1_bool = True
+            #     print(face_id_1)
+            # except:
+            #     #return HttpResponse("error")
+            #     print("Wrong image1(it's not face image)!!")
+            
+            # try:
+            #     response = requests.post(
+            #         'https://api.imagga.com/v2/faces/detections?return_face_id=1',
+            #         auth=(api_key, api_secret),
+            #         files={'image': default_storage.open(image_path2).read()})
+            #     face_id_2 = response.json()["result"]["faces"][0]["face_id"] 
+            #     response2_bool = True
+            #     print(face_id_2)
+            # except:
+            #     print("Wrong image2(it's not face image)!!")
+
+            # try:
+            #     if response1_bool and response2_bool:
+            #         response = requests.get(
+            #             'https://api.imagga.com/v2/faces/similarity?face_id=%s&second_face_id=%s' % (face_id_1, face_id_2),
+            #             auth=(api_key, api_secret))
+            #         print(response.json())
+            #         #TODO: if similarity > 80 ----> state = approved else -----> state = rejected
+
+            #         if response.json()["result"]["score"] >= 80:
+            #             dbChanges(True, username)
+            #         else:
+            #             dbChanges(False, username)
+            #     else:
+            #         dbChanges(False, username)
+            #         print("Invalid images!!")
+            # except:
+            #     dbChanges(False, username)
+            #     print("Wrong Input!!")
+
+            # time.sleep(10)
+            
+
+            
+
+            # return HttpResponse("done")
+    
     
 
 class StatusView(View):
@@ -112,13 +245,15 @@ class StatusView(View):
             return JsonResponse({"error": "bad request"}, status="400")   
         try:
             user = User.objects.get(national_id = hash(form.instance.national_id))
+            #user = User.objects.get(national_id = form.instance.national_id)
         except:
             return HttpResponse("User not found", status="404")
+        #user = User.objects.get(national_id = hash(form.instance.national_id))
         if user.state == "pending":
             return HttpResponse("Pending...")
-        elif user.state == "rejected":
+        elif user.state == "rejected.":
             return HttpResponse("Your authentication request has been rejected. Please try again later.")     
-        elif user.state == "confirmed":
+        elif user.state == "confirmed.":
             return HttpResponse(f"Your authentication was successfull!! Your username is {user.username}.")
 
 

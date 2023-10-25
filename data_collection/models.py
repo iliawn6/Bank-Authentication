@@ -14,8 +14,6 @@ class User(models.Model):
         return self.email
 
 
-class Test(models.Model):
-    username = models.CharField(max_length= 255)
 
 
 

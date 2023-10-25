@@ -118,7 +118,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # set the celery broker url 
 #CELERY_BROKER_URL = "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax"
-BROKER_URL = os.environ.get('RABBITMQ_URL', "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax")
   
 # set the celery result backend 
 #CELERY_RESULT_BACKEND = "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax"
