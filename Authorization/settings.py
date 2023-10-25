@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from environs import Env
+import os
+
+
 
 
 env = Env()
@@ -44,7 +47,9 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "rest_framework",
-
+    "storages",
+    "celery",
+    
     "data_collection.apps.DataCollectionConfig",
     
 ]
@@ -84,14 +89,10 @@ WSGI_APPLICATION = "Authorization.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'userqno_db',
-        'USER': 'root',
-        'PASSWORD': '9vpn4rtkayyzawc',
-        'HOST':'user-jby-service',
-        'PORT':'',
-    }
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }  
 }
 
 
@@ -112,6 +113,19 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+#Celery
+
+# set the celery broker url 
+#CELERY_BROKER_URL = "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax"
+BROKER_URL = os.environ.get('RABBITMQ_URL', "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax")
+  
+# set the celery result backend 
+#CELERY_RESULT_BACKEND = "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax"
+  
+# set the celery timezone 
+CELERY_TIMEZONE = 'UTC'
+
 
 
 # Internationalization
@@ -138,3 +152,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
+
+#Object Storage
+
+STORAGES = {"default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}}
+AWS_S3_ENDPOINT_URL = "http://s3.ir-thr-at1.arvanstorage.ir"
+AWS_S3_ACCESS_KEY_ID = "a5409f9d-9ab5-41c3-97f2-2e940f049d8a"
+AWS_S3_SECRET_ACCESS_KEY = "b186cf5926db740ea4d4228ef3a9384258cb0da7a121cd0ceaf62041ec7db369"
+AWS_STORAGE_BUCKET_NAME = "bank.user.images.auth"
+
