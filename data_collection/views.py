@@ -78,13 +78,27 @@ class ReceiverView(View):
 
             def dbChanges(check_bool, username):
                 user = User.objects.get(username = username)
+                email = user.email
+                state = ""
                 if check_bool == True:
                     user.state = "confirmed."
+                    state = "confirmed."
                     user.save()
                 else:
                     user.state = "rejected."
+                    state = "confirmed"
                     user.save()
                 print("State successfully changed")
+                response = requests.post(
+                        "https://api.mailgun.net/v3/sandbox48978a765fbd4c369c0513220ca1273d.mailgun.org/messages",
+                        auth=("api", "42818c350b22a4e25a0ee16768ebaa6c-324e0bb2-71e16711"),
+                        data={"from": "Cloud Computing <mailgun@sandbox48978a765fbd4c369c0513220ca1273d.mailgun.org>",
+                            "to": [email],
+                            "subject": "Bank Authentication Result",
+                            "text": f"Your authentications request has been {state}"})
+
+                print(response.json())
+
 
             api_key = 'acc_e68549d6c13fa79'
             api_secret = '6c88ec182a38feee0ba4ede9ebf672ad'
