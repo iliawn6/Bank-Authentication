@@ -52,7 +52,6 @@ class SubmitInfoView(View):
         
         new_user.save()
 
-
         url = os.environ.get('CLOUDAMQP_URL', "amqps://eixezsax:59gP2X5yKEVXRB7QlkGE6OE6ixNjPi9B@rat.rmq2.cloudamqp.com/eixezsax")
         params = pika.URLParameters(url)
         connection = pika.BlockingConnection(params)
@@ -118,7 +117,6 @@ class ReceiverView(View):
                 response1_bool = True
                 print(face_id_1)
             except:
-                #return HttpResponse("error")
                 print("Wrong image1(it's not face image)!!")
 
             try:
@@ -162,89 +160,6 @@ class ReceiverView(View):
         channel.basic_consume(queue='users', on_message_callback=callback, auto_ack=True)
         channel.start_consuming()
         channel.close()
-        #return HttpResponse("done----")
-
-        #---------------------------------------
-
-            # def dbChanges(check_bool, username):
-            #     user = User.objects.get(username = username)
-            #     if check_bool == True:
-            #         user.state = "confirmed."
-            #         user.save()
-            #     else:
-            #         user.state = "rejected."
-            #         user.save()
-            #     print("State successfully changed")
-
-            # api_key = 'acc_e68549d6c13fa79'
-            # api_secret = '6c88ec182a38feee0ba4ede9ebf672ad'
-            # image_path1 = "Jery818182_img1.jpg"
-            # image_path2 = "Jery818182_img2.jpg"
-            # image_path_test = "Reza787878_img2.jpg"
-            # username = "Jery818182"
-            
-            # response1_bool = False
-            # response2_bool = False
-
-            
-            
-            # # response = requests.post(
-            # #     'https://api.imagga.com/v2/faces/detections?return_face_id=1',
-            # #     auth=(api_key, api_secret),
-            # #     files={'image': default_storage.open(image_path1).read()})
-            # # face_id_1 = response.json()["result"]["faces"][0]["face_id"]
-            # # response1_bool = True
-            # # print(face_id_1)
-            # #print(response.json())
-
-            # try:
-            #     response = requests.post(
-            #         'https://api.imagga.com/v2/faces/detections?return_face_id=1',
-            #         auth=(api_key, api_secret),
-            #         files={'image': default_storage.open(image_path1).read()})
-            #     face_id_1 = response.json()["result"]["faces"][0]["face_id"]
-            #     response1_bool = True
-            #     print(face_id_1)
-            # except:
-            #     #return HttpResponse("error")
-            #     print("Wrong image1(it's not face image)!!")
-            
-            # try:
-            #     response = requests.post(
-            #         'https://api.imagga.com/v2/faces/detections?return_face_id=1',
-            #         auth=(api_key, api_secret),
-            #         files={'image': default_storage.open(image_path2).read()})
-            #     face_id_2 = response.json()["result"]["faces"][0]["face_id"] 
-            #     response2_bool = True
-            #     print(face_id_2)
-            # except:
-            #     print("Wrong image2(it's not face image)!!")
-
-            # try:
-            #     if response1_bool and response2_bool:
-            #         response = requests.get(
-            #             'https://api.imagga.com/v2/faces/similarity?face_id=%s&second_face_id=%s' % (face_id_1, face_id_2),
-            #             auth=(api_key, api_secret))
-            #         print(response.json())
-            #         #TODO: if similarity > 80 ----> state = approved else -----> state = rejected
-
-            #         if response.json()["result"]["score"] >= 80:
-            #             dbChanges(True, username)
-            #         else:
-            #             dbChanges(False, username)
-            #     else:
-            #         dbChanges(False, username)
-            #         print("Invalid images!!")
-            # except:
-            #     dbChanges(False, username)
-            #     print("Wrong Input!!")
-
-            # time.sleep(10)
-            
-
-            
-
-            # return HttpResponse("done")
     
     
 
@@ -259,10 +174,19 @@ class StatusView(View):
             return JsonResponse({"error": "bad request"}, status="400")   
         try:
             user = User.objects.get(national_id = hash(form.instance.national_id))
-            #user = User.objects.get(national_id = form.instance.national_id)
+            user_ip = user.ip
         except:
             return HttpResponse("User not found", status="404")
-        #user = User.objects.get(national_id = hash(form.instance.national_id))
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        
+        if ip != user_ip:
+            return HttpResponse("Illegal Access!!")
+        
         if user.state == "pending":
             return HttpResponse("Pending...")
         elif user.state == "rejected.":
