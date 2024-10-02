@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "gURBGcwPNOAy_fSUeuVeYtvgFs8DR0lpyVVq5hCMMJQ"
+SECRET_KEY = "##########################"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
@@ -91,10 +91,10 @@ WSGI_APPLICATION = "Authorization.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'userqno_db',
-        'USER': 'root',
-        'PASSWORD': '9vpn4rtkayyzawc',
-        'HOST':'user-jby-service',
+        'NAME': '############',
+        'USER': '############',
+        'PASSWORD': '##############',
+        'HOST':'###############',
         'PORT':'',
     }
 }
@@ -162,7 +162,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 STORAGES = {"default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}}
 AWS_S3_ENDPOINT_URL = "http://s3.ir-thr-at1.arvanstorage.ir"
-AWS_S3_ACCESS_KEY_ID = "a5409f9d-9ab5-41c3-97f2-2e940f049d8a"
-AWS_S3_SECRET_ACCESS_KEY = "b186cf5926db740ea4d4228ef3a9384258cb0da7a121cd0ceaf62041ec7db369"
-AWS_STORAGE_BUCKET_NAME = "bank.user.images.auth"
+AWS_S3_ACCESS_KEY_ID = "#########################"
+AWS_S3_SECRET_ACCESS_KEY = "#################################"
+AWS_STORAGE_BUCKET_NAME = "################################"
 
